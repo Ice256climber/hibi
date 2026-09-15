@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>愛着を抱くには ― ヒビ</title>
+<style>
+  :root{
+    --bg:#1B1F2B;
+    --panel:#232838;
+    --panel-alt:#2B3145;
+    --text:#EDEAE3;
+    --text-muted:#9AA0B4;
+    --warm:#F2B85C;
+    --good:#7FB77E;
+    --soft-good:#A9C97E;
+    --neutral:#9AA0B4;
+    --soft-bad:#D89A7E;
+    --bad:#C97064;
+    --border: rgba(237,234,227,0.14);
+    --serif: "Iowan Old Style","Palatino Linotype","Hiragino Mincho ProN","Book Antiqua", Georgia, serif;
+    --sans: "Avenir Next","Hiragino Kaku Gothic ProN","Segoe UI","Helvetica Neue", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.7;
+    padding:32px 20px 80px;
+    min-height:100vh;
+  }
+  .page{ max-width:640px; margin:0 auto; }
+  header.title{ text-align:center; margin-bottom:36px; }
+  header.title h1{
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:28px;
+    letter-spacing:0.02em;
+    margin:0 0 6px;
+  }
+  header.title p{ color:var(--text-muted); font-size:13px; margin:0; }
+
+  section{ margin-bottom:28px; }
+
+  /* ---- character card ---- */
+  .character-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 20px 24px;
+    border-top:1px dashed var(--border);
+    border-bottom:1px dashed var(--border);
+  }
+  .creature-wrap{
+    width:170px;
+    height:180px;
+    margin-bottom:10px;
+    position:relative;
+    cursor:pointer;
+    will-change:transform;
+  }
+  .creature-wrap:focus-visible{
+    outline:2px solid var(--warm);
+    outline-offset:8px;
+    border-radius:50%;
+  }
+  .heart-particle{
+    position:absolute;
+    color:var(--warm);
+    font-size:20px;
+    pointer-events:none;
+    text-shadow: 0 0 10px currentColor;
+    animation: floatUp 2.1s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{ opacity:1; transform:translate(0,0) scale(0.7); }
+    40%{ opacity:1; }
+    100%{ opacity:0; transform:translate(var(--dx, 0px), -92px) scale(1.5); }
+  }
+
+  /* 頑張った週:急がず、じんわり灯りが立ちのぼるような柔らかい光 */
+  .care-glow-orb{
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+    background: radial-gradient(circle, rgba(242,184,92,0.95) 0%, rgba(242,184,92,0.35) 45%, rgba(242,184,92,0) 75%);
+    filter: blur(0.5px);
+    animation: driftGlow 3.4s cubic-bezier(0.15,0.6,0.25,1) forwards;
+  }
+  @keyframes driftGlow{
+    0%{ opacity:0; transform:translate(0,0) scale(0.3); }
+    12%{ opacity:0.95; }
+    60%{ opacity:0.75; }
+    100%{ opacity:0; transform:translate(var(--dx, 0px), -130px) scale(2.1); }
+  }
+
+  /* お祝いの週:一気にはじけて広がる、華やかで速いバースト */
+  .celebrate-particle{
+    position:absolute;
+    pointer-events:none;
+    text-shadow: 0 0 6px currentColor;
+    animation: burstOut 1.2s cubic-bezier(0.15,0.75,0.3,1) forwards;
+  }
+  @keyframes burstOut{
+    0%{ opacity:1; transform:translate(0,0) scale(0.4) rotate(0deg); }
+    70%{ opacity:1; }
+    100%{ opacity:0; transform:translate(var(--dx, 0px), var(--dy, -70px)) scale(1.4) rotate(var(--rot, 120deg)); }
+  }
+
+  .char-name{ font-family:var(--serif); font-size:14px; color:var(--text-muted); margin:0 0 10px; }
+  .familiarity{ width:220px; margin-bottom:16px; }
+  .fam-label{ display:block; text-align:center; font-size:11px; color:var(--text-muted); margin-bottom:6px; }
+  .fam-bar{ width:100%; height:4px; background:var(--panel-alt); border-radius:2px; overflow:hidden; }
+  .fam-fill{ height:100%; background:var(--warm); width:0%; transition:width 0.3s; }
+
+  .emblem-group{ margin-bottom:16px; }
+  .emblem-group:last-child{ margin-bottom:0; }
+  .emblem-label{ font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+  .emblem-icons{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:17px; min-height:22px; }
+  .emblem-icons .emblem-empty{ font-size:12px; color:var(--text-muted); }
+  .emblem-icons .emblem-overflow{ font-size:12px; color:var(--text-muted); }
+  .speech{ font-family:var(--serif); font-size:16px; text-align:center; max-width:460px; color:var(--text); }
+  .speech .quote{ display:block; margin-top:10px; font-size:14px; color:var(--warm); }
+
+  /* ---- panel ---- */
+  .panel{ background:var(--panel); border:1px solid var(--border); border-radius:6px; padding:22px; }
+  .panel + .panel{ margin-top:18px; }
+  .panel h2{ font-family:var(--sans); font-weight:600; font-size:13px; color:var(--text-muted); margin:0 0 16px; }
+
+  textarea{
+    width:100%; min-height:80px;
+    background:var(--panel-alt); border:1px solid var(--border); border-radius:4px;
+    color:var(--text); font-family:var(--serif); font-size:15px; padding:12px 14px; resize:vertical;
+  }
+  textarea:focus{ outline:2px solid var(--warm); outline-offset:1px; }
+
+  .mood-row{ display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .mood-btn{
+    flex:1 1 auto; min-width:64px; padding:10px 6px;
+    background:var(--panel-alt); border:1px solid var(--border); border-radius:4px;
+    color:var(--text-muted); font-family:var(--sans); font-size:13px; cursor:pointer;
+    transition:border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .mood-btn:hover{ border-color:var(--warm); }
+  .mood-btn:focus-visible{ outline:2px solid var(--warm); outline-offset:2px; }
+  .mood-btn.selected{ color:var(--bg); font-weight:600; border-color:transparent; }
+
+  .save-row{ display:flex; justify-content:space-between; align-items:center; margin-top:18px; flex-wrap:wrap; gap:10px; }
+  .save-btn{
+    background:var(--warm); color:#22160a; border:none; border-radius:4px;
+    padding:11px 22px; font-family:var(--sans); font-weight:600; font-size:14px; cursor:pointer;
+  }
+  .save-btn:focus-visible{ outline:2px solid var(--text); outline-offset:2px; }
+  .save-note{ font-size:12px; color:var(--text-muted); }
+
+  /* ---- week summary ---- */
+  .week-status{ display:inline-block; font-size:12px; padding:3px 10px; border-radius:20px; margin-left:8px; vertical-align:middle; }
+  canvas#weekChart{ width:100%; height:120px; display:block; margin-top:14px; }
+  .highlight-pair{ display:flex; gap:14px; margin-top:16px; flex-wrap:wrap; }
+  .highlight-box{ flex:1 1 220px; background:var(--panel-alt); border-radius:4px; padding:14px 16px; border-left:3px solid var(--good); }
+  .highlight-box.bad{ border-left-color:var(--bad); }
+  .highlight-box .h-label{ font-size:11px; color:var(--text-muted); margin-bottom:6px; }
+  .highlight-box .h-text{ font-family:var(--serif); font-size:14px; }
+
+  /* ---- history ---- */
+  details{ cursor:pointer; }
+  summary{ font-size:13px; color:var(--text-muted); outline:none; }
+  summary:focus-visible{ outline:2px solid var(--warm); }
+  .history-list{ margin-top:14px; }
+  .history-item{ display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:13px; }
+  .history-item:last-child{ border-bottom:none; }
+  .history-date{ color:var(--text-muted); width:78px; flex-shrink:0; }
+  .history-dot{ width:9px;height:9px;border-radius:50%; flex-shrink:0; margin-top:5px; }
+  .history-text{ font-family:var(--serif); }
+
+  /* ---- adjustment controls (always visible) ---- */
+  .adjust-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; font-size:13px; }
+  .adjust-row:last-child{ margin-bottom:0; }
+  .adjust-row button{
+    background:var(--panel-alt); border:1px solid var(--border); color:var(--text);
+    padding:7px 14px; border-radius:4px; font-family:var(--sans); font-size:12px; cursor:pointer;
+  }
+  .adjust-row button:hover{ border-color:var(--warm); }
+  .adjust-row label{ display:flex; align-items:center; gap:8px; width:100%; }
+  input[type="range"]{ flex:1; accent-color:var(--warm); }
+
+  footer{ text-align:center; margin-top:40px; font-size:11px; color:var(--text-muted); }
+  footer button{ background:none; border:none; color:var(--text-muted); text-decoration:underline; cursor:pointer; font-size:11px; padding:0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="title">
+    <h1>愛着を抱くには</h1>
+    <p>一言日記を積み重ねると、ヒビの振る舞いが少しずつ変わっていきます</p>
+  </header>
+
+  <section class="character-card">
+    <div class="creature-wrap" id="creatureWrap">
+      <svg viewBox="0 0 200 210" id="creatureSvg" style="width:100%;height:100%;overflow:visible;">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="48%" r="62%">
+            <stop id="glowStop" offset="0%" stop-color="#F2B85C" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="#F2B85C" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="bodyGrad" cx="38%" cy="30%" r="85%">
+            <stop id="bodyStopA" offset="0%" stop-color="#454c78"/>
+            <stop offset="100%" stop-color="#232838"/>
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="105" r="98" fill="url(#glow)"/>
+        <g id="particlesGroup"></g>
+        <path id="blobPath" fill="url(#bodyGrad)" stroke="rgba(237,234,227,0.18)" stroke-width="1"/>
+      </svg>
+    </div>
+    <p class="char-name">ヒビ</p>
+    <div class="familiarity">
+      <span class="fam-label" id="famLabel">なじみ度: まだ知り合ったばかり (0/30)</span>
+      <div class="fam-bar"><div class="fam-fill" id="famFill"></div></div>
+    </div>
+    <p class="speech" id="speechText">はじめまして…今日あったこと、少しだけ聞かせてくれますか?</p>
+  </section>
+
+  <section class="panel">
+    <h2>今日の記録</h2>
+    <textarea id="diaryInput" placeholder="今日あったことを一言で(例: 友達とお昼にラーメンを食べた)"></textarea>
+    <div class="mood-row" id="moodRow"></div>
+    <div class="save-row">
+      <span class="save-note" id="saveNote">今日はまだ記録されていません</span>
+      <button class="save-btn" id="saveBtn">今日を記録する</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>今週のようす <span id="weekStatus" class="week-status"></span></h2>
+    <canvas id="weekChart" width="600" height="120"></canvas>
+    <div class="highlight-pair">
+      <div class="highlight-box" id="bestBox">
+        <div class="h-label">今週いちばん良かった日</div>
+        <div class="h-text" id="bestText">まだデータがありません</div>
+      </div>
+      <div class="highlight-box bad" id="worstBox">
+        <div class="h-label">今週いちばん大変だった日</div>
+        <div class="h-text" id="worstText">まだデータがありません</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>積み重ねてきたこと</h2>
+    <div class="emblem-group">
+      <div class="emblem-label">お祝いした週(<span id="celebrationCountLabel">0</span>回)</div>
+      <div class="emblem-icons" id="celebrationEmblems"></div>
+    </div>
+    <div class="emblem-group">
+      <div class="emblem-label">頑張った週(<span id="careCountLabel">0</span>回)</div>
+      <div class="emblem-icons" id="careEmblems"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary id="historySummary">これまでの記録を見る(0件)</summary>
+      <div class="history-list" id="historyList"></div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <h2>日付となじみ度の調整</h2>
+    <div class="adjust-row">
+      <span>今日の日付(表示上): <strong id="simDateLabel">-</strong></span>
+    </div>
+    <div class="adjust-row">
+      <button id="skip1Btn" type="button">+1日進める</button>
+      <button id="skip7Btn" type="button">+7日進める</button>
+      <button id="skipResetBtn" type="button">実際の日付に戻す</button>
+    </div>
+    <div class="adjust-row">
+      <label for="famSlider">
+        なじみ度(<span id="famSliderVal">0</span>/30)
+        <input type="range" id="famSlider" min="0" max="30" step="1" value="0">
+      </label>
+    </div>
+    <div class="adjust-row">
+      <button id="demoGoodWeekBtn" type="button">「良い週」を1週間分まとめて用意</button>
+      <button id="demoBadWeekBtn" type="button">「大変な週」を1週間分まとめて用意</button>
+    </div>
+  </section>
+
+  <footer>
+    <button id="resetBtn">すべての記録・なじみ度を消去する</button>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'hibi-diary-entries-v1';
+  const FAMILIARITY_KEY = 'hibi-familiarity-v1';
+  const OFFSET_KEY = 'hibi-demo-offset-v1';
+  const CELEBRATION_COUNT_KEY = 'hibi-celebration-count-v1';
+  const CARE_COUNT_KEY = 'hibi-care-count-v1';
+  const MAX_FAMILIARITY = 30;
+  const MAX_EMBLEM_ICONS = 12;
+  const CENTER = {x:100, y:105};
+  const BASE_RADIUS = 55;
+  const BLOB_POINTS = 8;
+
+  const MOODS = [
+    {label:'良い',        score: 2, color:'#7FB77E'},
+    {label:'ちょっといい', score: 1, color:'#A9C97E'},
+    {label:'普通',        score: 0, color:'#9AA0B4'},
+    {label:'ちょっと悪い', score:-1, color:'#D89A7E'},
+    {label:'悪い',        score:-2, color:'#C97064'}
+  ];
+
+  // なじみ度の段階。値が大きいものから判定する。
+  const TIERS = [
+    {min:15, label:'すっかり馴染んだ', tone:'casual'},
+    {min:5,  label:'少しずつ慣れてきた', tone:'semi'},
+    {min:0,  label:'まだ知り合ったばかり', tone:'polite'}
+  ];
+
+  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  const SPEECH = {
+    intro: {
+      polite: [
+        'はじめまして…今日あったこと、少しだけ聞かせてくれますか?',
+        'こんにちは…今日は何かありましたか?',
+        'よかったら、今日のことを教えてください'
+      ],
+      semi: [
+        'また今日も、お話聞かせてね',
+        'おかえり、今日はどんな一日だった?',
+        '今日のこと、聞かせてくれる?'
+      ],
+      casual: [
+        'おかえり!今日は何してたの?',
+        'よっ、今日はどんな日だった?',
+        'ねえねえ、今日のこと聞かせてよ'
+      ]
+    },
+    good: {
+      polite: [
+        'それはよかったです。お話聞けて、わたしも嬉しいです',
+        'それは素敵ですね。聞いていて、わたしまで嬉しくなりました',
+        '良い一日だったんですね。何よりです'
+      ],
+      semi: [
+        'わぁ、それはよかったね!嬉しいな',
+        'えー、いいことあったんだね!なんか嬉しい',
+        'それは良かった!聞けてよかったよ'
+      ],
+      casual: [
+        'えー、それ最高じゃん!めっちゃ良かったね、えへへ',
+        'うわ、それ最高!聞いてるこっちまで嬉しくなる',
+        'いいじゃんいいじゃん!それめちゃくちゃ良かったね'
+      ]
+    },
+    okGood: {
+      polite: [
+        '悪くない一日だったんですね、よかったです',
+        '穏やかな一日だったみたいですね',
+        'まずまずの一日だったようで、安心しました'
+      ],
+      semi: [
+        '悪くない一日だったみたいだね、よかった',
+        'まあまあいい感じだったんだね',
+        'それなら良かった、悪くない一日だね'
+      ],
+      casual: [
+        'まあまあいい感じの日だったんだ、よかったね',
+        'そこそこ良かったんだ、それは何より',
+        '悪くない感じじゃん、いいね'
+      ]
+    },
+    neutral: {
+      polite: [
+        'いつも通りの一日、それも大切ですね',
+        '穏やかな一日を過ごせたんですね',
+        '特別なことがなくても、それも良い一日だと思います'
+      ],
+      semi: [
+        'いつも通りの一日、それもいいよね',
+        '何もない日も、それはそれでいいよね',
+        '穏やかな一日だったんだね'
+      ],
+      casual: [
+        'いつも通りかぁ、それもいいよね',
+        'まあ、そういう日もあるよね',
+        '普通の日、それはそれで悪くないよね'
+      ]
+    },
+    okBad: {
+      polite: [
+        '少しお疲れの一日だったんですね…無理しないでくださいね',
+        '少し大変だったみたいですね…ゆっくり休んでください',
+        '疲れが出ているようですね…ご無理なさらないでください'
+      ],
+      semi: [
+        'ちょっと疲れる一日だったのかな…無理しないでね',
+        '少し大変だったんだね…ゆっくり休んでね',
+        'お疲れだったんだね…あんまり無理しないで'
+      ],
+      casual: [
+        'ちょっと疲れちゃった日だったんだ…無理しないでよ?',
+        '少し大変だったんだ…ちゃんと休んでよ?',
+        'お疲れモードだったんだね…無理すんなよ?'
+      ]
+    },
+    bad: {
+      polite: [
+        'それは大変でしたね…ちゃんと聞いていますよ',
+        'それはお辛かったですね…ずっとそばで聞いています',
+        '大変な一日だったんですね…無理せず、少し休んでくださいね'
+      ],
+      semi: [
+        'そっか…大変な一日だったんだね。ちゃんと聞いてるよ',
+        'そっか、しんどかったね…ゆっくり話して',
+        '大変だったんだね…無理しないで、ちゃんと聞いてるよ'
+      ],
+      casual: [
+        'うわぁ…それは大変だったね。ちゃんと聞いてるから、話して?',
+        'えぇ…しんどかったね、ちゃんと聞いてるよ',
+        'うわ、大変だったじゃん…無理せず話していいからね?'
+      ]
+    }
+  };
+
+  function newWeekMessage(judgeLabel, quote, tone){
+    const templates = {
+      polite: `先週は${judgeLabel}だったんですね。「${quote}」って言っていたこと、ちゃんと覚えていますよ`,
+      semi:   `先週は${judgeLabel}だったね。「${quote}」って言ってたの、ちゃんと覚えてるよ`,
+      casual: `先週${judgeLabel}だったよね!「${quote}」って言ってたの覚えてるよ〜`
+    };
+    return templates[tone];
+  }
+
+  // 「大変な週」の直後だけ出る、単純接触だけでは生まれない特別な反応
+  const CARE_MESSAGE = {
+    polite: 'この前は大変そうでしたね…ずっと見ていて、あなたのために温かい光を灯して待っていました',
+    semi:   'この前大変だったね…ずっと見てて、あなたのために温かい光を灯して待ってたよ',
+    casual: 'この前めっちゃ大変そうだったじゃん…だからずっと、あなたのために温かい光を灯して待ってたんだよ'
+  };
+
+  // 「良い週」の直後に出る、お祝いの反応
+  const CELEBRATION_MESSAGE = {
+    polite: '先週はとても良い一週間だったみたいですね。わたしまで嬉しいです',
+    semi:   '先週すごく良い一週間だったね!わたしまで嬉しいな',
+    casual: '先週めっちゃ良い一週間だったじゃん!めちゃくちゃ嬉しい'
+  };
+
+  let selectedMoodIndex = null;
+  let currentAvg = 0;          // 直近の気分平均。アニメーションループが常時参照する
+  let currentFamiliarity = 0;
+  let talkBoost = 0;           // 発言した直後に揺れが少し大きくなる演出用
+  let time = 0;
+  let lastTs = 0;
+  let particles = [];          // なじみ度で増える光の粒
+
+  // カーソル/タッチへの追従(ゆるやかにレンズのように寄ってくる)
+  let followX = 0, followY = 0, targetFollowX = 0, targetFollowY = 0;
+  // つつき・保存時の「ぷにっ」としたバネの跳ね返り
+  let squishScale = 1, squishVelocity = 0;
+  let pokeTimeoutId = null;
+  let lastSavedKey = null; // 直近に「今日を記録する」で保存したキー(日付の並び順に頼らないため)
+
+  const els = {
+    diaryInput: document.getElementById('diaryInput'),
+    moodRow: document.getElementById('moodRow'),
+    saveBtn: document.getElementById('saveBtn'),
+    saveNote: document.getElementById('saveNote'),
+    speechText: document.getElementById('speechText'),
+    creatureWrap: document.getElementById('creatureWrap'),
+    blobPath: document.getElementById('blobPath'),
+    particlesGroup: document.getElementById('particlesGroup'),
+    glowStop: document.getElementById('glowStop'),
+    bodyStopA: document.getElementById('bodyStopA'),
+    weekStatus: document.getElementById('weekStatus'),
+    bestText: document.getElementById('bestText'),
+    worstText: document.getElementById('worstText'),
+    historySummary: document.getElementById('historySummary'),
+    historyList: document.getElementById('historyList'),
+    resetBtn: document.getElementById('resetBtn'),
+    weekChart: document.getElementById('weekChart'),
+    famLabel: document.getElementById('famLabel'),
+    famFill: document.getElementById('famFill'),
+    famSlider: document.getElementById('famSlider'),
+    famSliderVal: document.getElementById('famSliderVal'),
+    simDateLabel: document.getElementById('simDateLabel'),
+    skip1Btn: document.getElementById('skip1Btn'),
+    skip7Btn: document.getElementById('skip7Btn'),
+    skipResetBtn: document.getElementById('skipResetBtn'),
+    demoGoodWeekBtn: document.getElementById('demoGoodWeekBtn'),
+    demoBadWeekBtn: document.getElementById('demoBadWeekBtn'),
+    celebrationCountLabel: document.getElementById('celebrationCountLabel'),
+    celebrationEmblems: document.getElementById('celebrationEmblems'),
+    careCountLabel: document.getElementById('careCountLabel'),
+    careEmblems: document.getElementById('careEmblems')
+  };
+
+  // ---- 日付(早送りに対応) ----
+  function loadOffset(){
+    const v = parseInt(localStorage.getItem(OFFSET_KEY), 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function saveOffset(v){ localStorage.setItem(OFFSET_KEY, String(v)); }
+  function getSimulatedDate(){ return new Date(Date.now() + loadOffset() * 86400000); }
+  function dateKeyFor(d){
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+  function todayKey(){ return dateKeyFor(getSimulatedDate()); }
+
+  // ---- 日記データ ----
+  function loadEntries(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function saveEntries(entries){ localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+  function sortedDates(entries){ return Object.keys(entries).sort(); }
+
+  // 直近7件を1週とみなして区切る(カレンダー週ではなく、記録7回ごとの区切り)
+  function getWeeks(entries){
+    const dates = sortedDates(entries);
+    const weeks = [];
+    for(let i=0;i<dates.length;i+=7){
+      weeks.push(dates.slice(i,i+7).map(d => ({date:d, ...entries[d]})));
+    }
+    return weeks;
+  }
+  function judgeWeek(weekEntries){
+    const total = weekEntries.reduce((s,e)=>s+e.score,0);
+    if(total >= 5) return {label:'良い週', color:'var(--good)'};
+    if(total <= -5) return {label:'大変な週', color:'var(--bad)'};
+    return {label:'普通の週', color:'var(--neutral)'};
+  }
+
+  // ---- なじみ度(累積・週をまたいでもリセットされない) ----
+  function loadFamiliarity(){
+    const v = parseInt(localStorage.getItem(FAMILIARITY_KEY), 10);
+    return isNaN(v) ? 0 : Math.max(0, Math.min(v, MAX_FAMILIARITY));
+  }
+  function saveFamiliarity(v){
+    localStorage.setItem(FAMILIARITY_KEY, String(Math.max(0, Math.min(v, MAX_FAMILIARITY))));
+  }
+  function getTier(fam){ return TIERS.find(t => fam >= t.min); }
+
+  // ---- お祝い/ケアの回数をエンブレムとして蓄積表示する ----
+  function loadCount(key){
+    const v = parseInt(localStorage.getItem(key), 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function saveCount(key, v){ localStorage.setItem(key, String(v)); }
+  function incrementCount(key){
+    const v = loadCount(key) + 1;
+    saveCount(key, v);
+    return v;
+  }
+  function renderEmblemIcons(container, count, icon){
+    container.innerHTML = '';
+    if(count === 0){
+      const empty = document.createElement('span');
+      empty.className = 'emblem-empty';
+      empty.textContent = 'まだありません';
+      container.appendChild(empty);
+      return;
+    }
+    const shown = Math.min(count, MAX_EMBLEM_ICONS);
+    for(let i=0;i<shown;i++){
+      const s = document.createElement('span');
+      s.textContent = icon;
+      container.appendChild(s);
+    }
+    if(count > MAX_EMBLEM_ICONS){
+      const more = document.createElement('span');
+      more.className = 'emblem-overflow';
+      more.textContent = `+${count - MAX_EMBLEM_ICONS}`;
+      container.appendChild(more);
+    }
+  }
+  function updateEmblems(){
+    const cCount = loadCount(CELEBRATION_COUNT_KEY);
+    const kCount = loadCount(CARE_COUNT_KEY);
+    els.celebrationCountLabel.textContent = cCount;
+    els.careCountLabel.textContent = kCount;
+    renderEmblemIcons(els.celebrationEmblems, cCount, '✨');
+    renderEmblemIcons(els.careEmblems, kCount, '♡');
+  }
+
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function hexToRgb(hex){
+    const v = parseInt(hex.replace('#',''),16);
+    return [(v>>16)&255, (v>>8)&255, v&255];
+  }
+  function rgbToHex(r,g,b){
+    return '#' + [r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join('');
+  }
+  function lerpColor(hexA, hexB, t){
+    const a = hexToRgb(hexA), b = hexToRgb(hexB);
+    return rgbToHex(lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t));
+  }
+  function truncate(text, n){ return text.length > n ? text.slice(0,n) + '…' : text; }
+
+  function renderMoodButtons(){
+    els.moodRow.innerHTML = '';
+    MOODS.forEach((m, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mood-btn';
+      btn.textContent = m.label;
+      btn.addEventListener('click', () => {
+        selectedMoodIndex = i;
+        [...els.moodRow.children].forEach((c,ci)=>{
+          c.classList.toggle('selected', ci===i);
+          c.style.background = ci===i ? MOODS[ci].color : '';
+          c.style.color = ci===i ? '#1B1F2B' : '';
+        });
+      });
+      els.moodRow.appendChild(btn);
+    });
+  }
+
+  // ---- 光の粒(なじみ度で増える) ----
+  function particleCountFor(familiarity){
+    return Math.min(10, Math.ceil((familiarity / MAX_FAMILIARITY) * 10));
+  }
+  function regenerateParticles(count){
+    while(particles.length < count){
+      particles.push({
+        angle: Math.random()*Math.PI*2,
+        radius: 76 + Math.random()*20,
+        speed: (0.12 + Math.random()*0.22) * (Math.random()<0.5 ? 1 : -1),
+        size: 1.3 + Math.random()*1.5,
+        twinklePhase: Math.random()*Math.PI*2
+      });
+    }
+    if(particles.length > count){ particles.length = count; }
+  }
+  function ensureParticleElements(){
+    const g = els.particlesGroup;
+    while(g.children.length < particles.length){
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('fill', '#F2B85C');
+      g.appendChild(c);
+    }
+    while(g.children.length > particles.length){
+      g.removeChild(g.lastChild);
+    }
+  }
+  function renderParticles(){
+    ensureParticleElements();
+    const g = els.particlesGroup;
+    particles.forEach((p,i) => {
+      const el = g.children[i];
+      const x = CENTER.x + Math.cos(p.angle) * p.radius;
+      const y = CENTER.y + Math.sin(p.angle) * p.radius * 0.94;
+      el.setAttribute('cx', x.toFixed(1));
+      el.setAttribute('cy', y.toFixed(1));
+      el.setAttribute('r', p.size.toFixed(1));
+      const twinkle = 0.35 + 0.6 * Math.abs(Math.sin(time*1.6 + p.twinklePhase));
+      el.setAttribute('opacity', twinkle.toFixed(2));
+    });
+  }
+
+  // ---- 有機的な形の揺らぎ(顔の代わりに、動きと色で気分を表現する) ----
+  function moodToEnergy(avg){
+    const t = (avg + 2) / 4; // 0..1 (0=悪い, 1=良い)
+    return {
+      speed: lerp(0.55, 1.9, t),     // 悪い日はゆっくり重く、良い日は軽やかに速く
+      amplitude: lerp(2.5, 8, t)     // 悪い日はほとんど動かず、良い日は大きく弾む
+    };
+  }
+  function computeBlobPoints(energy, boost){
+    const points = [];
+    for(let i=0;i<BLOB_POINTS;i++){
+      const angle = (i / BLOB_POINTS) * Math.PI * 2;
+      const wobble = Math.sin(time*energy.speed + i*1.7) * energy.amplitude
+                   + Math.sin(time*energy.speed*1.9 + i*0.6) * energy.amplitude*0.4
+                   + boost * Math.sin(time*9 + i) * 6;
+      const r = BASE_RADIUS + wobble;
+      points.push([
+        CENTER.x + Math.cos(angle) * r,
+        CENTER.y + Math.sin(angle) * r * 0.94
+      ]);
+    }
+    return points;
+  }
+  function catmullRomPath(points){
+    const n = points.length;
+    let d = '';
+    for(let i=0;i<n;i++){
+      const p0 = points[(i-1+n)%n];
+      const p1 = points[i];
+      const p2 = points[(i+1)%n];
+      const p3 = points[(i+2)%n];
+      const cp1x = p1[0] + (p2[0]-p0[0])/6;
+      const cp1y = p1[1] + (p2[1]-p0[1])/6;
+      const cp2x = p2[0] - (p3[0]-p1[0])/6;
+      const cp2y = p2[1] - (p3[1]-p1[1])/6;
+      if(i===0) d += `M ${p1[0].toFixed(1)} ${p1[1].toFixed(1)} `;
+      d += `C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `;
+    }
+    return d + 'Z';
+  }
+
+  function tick(ts){
+    if(!lastTs) lastTs = ts;
+    const dt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    time += dt;
+    talkBoost *= Math.exp(-1.0 * dt); // フレームレートに依存しない減衰。以前より余韻を長く
+
+    // カーソル/タッチにゆるやかに寄っていく(急には動かず、少し遅れてついてくる)
+    const followEase = Math.min(1, dt * 6);
+    followX += (targetFollowX - followX) * followEase;
+    followY += (targetFollowY - followY) * followEase;
+
+    // つつき・保存時の「ぷにっ」としたバネの跳ね返り(以前よりゆっくり大きく揺れて長く続く)
+    const springForce = -90 * (squishScale - 1) - 8 * squishVelocity;
+    squishVelocity += springForce * dt;
+    squishScale += squishVelocity * dt;
+
+    const bobY = Math.sin(time * 0.9) * 4;
+    const rotate = followX * 0.5;
+    els.creatureWrap.style.transform =
+      `translate(${followX.toFixed(2)}px, ${(bobY + followY*0.3).toFixed(2)}px) rotate(${rotate.toFixed(2)}deg) scale(${squishScale.toFixed(3)})`;
+
+    const energy = moodToEnergy(currentAvg);
+    els.blobPath.setAttribute('d', catmullRomPath(computeBlobPoints(energy, talkBoost)));
+
+    particles.forEach(p => { p.angle += p.speed * dt; });
+    renderParticles();
+
+    requestAnimationFrame(tick);
+  }
+
+  // ---- カーソル/タッチへの追従 ----
+  function updatePointerTarget(clientX, clientY){
+    const rect = els.creatureWrap.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    const influence = Math.max(0, 1 - dist/480); // 近いほど強く反応し、遠いと中心に戻る
+    const maxOffset = 9;
+    targetFollowX = (dx/dist) * maxOffset * influence;
+    targetFollowY = (dy/dist) * maxOffset * influence;
+  }
+  document.addEventListener('mousemove', (e) => updatePointerTarget(e.clientX, e.clientY));
+  document.addEventListener('touchmove', (e) => {
+    if(e.touches && e.touches[0]){
+      updatePointerTarget(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, {passive:true});
+  document.addEventListener('mouseleave', () => { targetFollowX = 0; targetFollowY = 0; });
+
+  // ---- つつつくと少し反応する ----
+  const POKE_REACTIONS = {
+    polite: [
+      'わっ、驚きました',
+      'ふふ、くすぐったいです',
+      'どうかしましたか?',
+      'わたしに何か用ですか?',
+      'ふふ、突然ですね'
+    ],
+    semi: [
+      'わっ、びっくりした!',
+      'ふふ、くすぐったいよ',
+      'どうしたの?',
+      'なになに?',
+      'ふふ、急にどうしたの?'
+    ],
+    casual: [
+      'きゃっ、びっくりした!',
+      'えへへ、くすぐったいってば',
+      'なになに、どうしたの?',
+      'わっ!急に何?',
+      'えへへ、つつかれちゃった'
+    ]
+  };
+  function pokeCreature(){
+    const familiarity = loadFamiliarity();
+    const tier = getTier(familiarity);
+    els.speechText.textContent = pick(POKE_REACTIONS[tier.tone]);
+    talkBoost = 1.3;
+    squishVelocity += 5.5;
+    spawnHearts();
+    if(pokeTimeoutId) clearTimeout(pokeTimeoutId);
+    pokeTimeoutId = setTimeout(() => { refreshAll(); }, 2200);
+  }
+
+  // avgScore: 直近の気分平均(-2..2) / familiarity: 累積のなじみ度(0..30)
+  function renderCreature(avgScore, familiarity){
+    currentAvg = isNaN(avgScore) ? 0 : avgScore;
+    currentFamiliarity = familiarity;
+    regenerateParticles(particleCountFor(familiarity));
+
+    const t = (currentAvg + 2) / 4;
+    const moodColor = lerpColor('#C97064', '#7FB77E', t);
+    els.glowStop.setAttribute('stop-color', moodColor);
+    const glowOpacity = 0.28 + (familiarity / MAX_FAMILIARITY) * 0.35;
+    els.glowStop.setAttribute('stop-opacity', Math.min(0.68, glowOpacity).toFixed(2));
+    els.bodyStopA.setAttribute('stop-color', lerpColor('#454c78', moodColor, 0.22));
+  }
+
+  function updateSpeech(entries, familiarity){
+    const tier = getTier(familiarity);
+    const dates = sortedDates(entries);
+    if(dates.length === 0){
+      els.speechText.innerHTML = pick(SPEECH.intro[tier.tone]);
+      renderCreature(0, familiarity);
+      return;
+    }
+    const weeks = getWeeks(entries);
+    const currentWeek = weeks[weeks.length-1];
+    // 日付を早送り/リセットして使うと、実際の日付順では「未来」に記録した古いデータの方が
+    // 後ろに並んでしまうことがある。そのため「日付が一番新しいもの」ではなく、
+    // 「実際にさっき保存したもの」を優先して今日のセリフに反映する。
+    const latestKey = (lastSavedKey && entries[lastSavedKey]) ? lastSavedKey : dates[dates.length-1];
+    const latest = entries[latestKey];
+    const recent = dates.slice(-3).map(d=>entries[d].score);
+    const avg = recent.reduce((s,v)=>s+v,0) / recent.length;
+    renderCreature(avg, familiarity);
+
+    let msg = '';
+    if(latest.score >= 2){
+      msg = pick(SPEECH.good[tier.tone]);
+    } else if(latest.score <= -2){
+      msg = pick(SPEECH.bad[tier.tone]);
+    } else if(latest.score === 1){
+      msg = pick(SPEECH.okGood[tier.tone]);
+    } else if(latest.score === -1){
+      msg = pick(SPEECH.okBad[tier.tone]);
+    } else {
+      msg = pick(SPEECH.neutral[tier.tone]);
+    }
+
+    // 週の切り替わりのときは、今日の気分の反応に「先週の振り返り/ケア/お祝い」を補足として添える
+    // (今日のセリフを上書きしない。悪い日には悪い日の反応をそのまま優先する)
+    if(currentWeek.length === 1 && weeks.length > 1){
+      const prevWeek = weeks[weeks.length-2];
+      const judge = judgeWeek(prevWeek);
+      const best = prevWeek.reduce((a,b)=> b.score>a.score?b:a);
+      let weekNote;
+      if(judge.label === '大変な週'){
+        weekNote = CARE_MESSAGE[tier.tone];
+      } else if(judge.label === '良い週'){
+        weekNote = CELEBRATION_MESSAGE[tier.tone];
+      } else {
+        weekNote = newWeekMessage(judge.label, truncate(best.text,28), tier.tone);
+      }
+      msg = `${msg}<span class="quote">${weekNote}</span>`;
+    }
+    els.speechText.innerHTML = msg;
+  }
+
+  function updateFamiliarityUI(familiarity){
+    const tier = getTier(familiarity);
+    els.famLabel.textContent = `なじみ度: ${tier.label} (${familiarity}/${MAX_FAMILIARITY})`;
+    els.famFill.style.width = `${(familiarity / MAX_FAMILIARITY) * 100}%`;
+    els.famSlider.value = familiarity;
+    els.famSliderVal.textContent = familiarity;
+  }
+
+  function updateWeekPanel(entries){
+    const weeks = getWeeks(entries);
+    if(weeks.length === 0){
+      els.weekStatus.textContent = '';
+      els.bestText.textContent = 'まだデータがありません';
+      els.worstText.textContent = 'まだデータがありません';
+      drawChart([]);
+      return;
+    }
+    const currentWeek = weeks[weeks.length-1];
+    const judge = judgeWeek(currentWeek);
+    els.weekStatus.textContent = judge.label;
+    els.weekStatus.style.background = judge.color;
+    els.weekStatus.style.color = '#1B1F2B';
+
+    const best = currentWeek.reduce((a,b)=> b.score>a.score?b:a);
+    const worst = currentWeek.reduce((a,b)=> b.score<a.score?b:a);
+    els.bestText.textContent = `${best.date}「${best.text}」`;
+    els.worstText.textContent = `${worst.date}「${worst.text}」`;
+
+    drawChart(currentWeek);
+  }
+
+  function drawChart(weekEntries){
+    const canvas = els.weekChart;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    if(weekEntries.length === 0) return;
+
+    const barW = w / 7;
+    const midY = h/2;
+    ctx.strokeStyle = 'rgba(237,234,227,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(w, midY);
+    ctx.stroke();
+
+    weekEntries.forEach((e, i) => {
+      const barH = (Math.abs(e.score) / 2) * (h/2 - 8);
+      const x = i * barW + barW*0.25;
+      const bw = barW*0.5;
+      const color = e.score > 0 ? '#7FB77E' : e.score < 0 ? '#C97064' : '#9AA0B4';
+      ctx.fillStyle = color;
+      if(e.score >= 0){
+        ctx.fillRect(x, midY - barH, bw, barH);
+      } else {
+        ctx.fillRect(x, midY, bw, barH);
+      }
+    });
+  }
+
+  function updateHistory(entries){
+    const dates = sortedDates(entries).reverse();
+    els.historySummary.textContent = `これまでの記録を見る(${dates.length}件)`;
+    els.historyList.innerHTML = '';
+    dates.forEach(d => {
+      const e = entries[d];
+      const mood = MOODS.find(m=>m.score===e.score) || MOODS[2];
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      row.innerHTML = `
+        <div class="history-date">${d}</div>
+        <div class="history-dot" style="background:${mood.color}"></div>
+        <div class="history-text">${e.text}</div>
+      `;
+      els.historyList.appendChild(row);
+    });
+  }
+
+  function spawnHearts(){
+    // なじみ度が低いうちは控えめに、馴染むほどたくさん舞うようにする
+    const count = 1 + Math.round((currentFamiliarity / MAX_FAMILIARITY) * 3); // 1〜4個
+    for(let i=0;i<count;i++){
+      const h = document.createElement('span');
+      h.className = 'heart-particle';
+      h.textContent = '♡';
+      h.style.left = (10 + Math.random()*80) + '%';
+      h.style.bottom = (8 + Math.random()*30) + '%';
+      h.style.setProperty('--dx', (Math.random()*30 - 15) + 'px');
+      h.style.animationDelay = (i * 0.15) + 's';
+      els.creatureWrap.appendChild(h);
+      setTimeout(() => h.remove(), 2400);
+    }
+  }
+
+  // 頑張った週:急がず、灯りをそっと灯すように、少数がゆっくり立ちのぼる
+  function spawnCareGlow(){
+    for(let i=0;i<6;i++){
+      const s = document.createElement('span');
+      s.className = 'care-glow-orb';
+      const size = 10 + Math.random()*10;
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
+      s.style.left = (20 + Math.random()*60) + '%';
+      s.style.bottom = (10 + Math.random()*20) + '%';
+      s.style.setProperty('--dx', (Math.random()*36 - 18) + 'px');
+      s.style.animationDelay = (i * 0.35) + 's';
+      els.creatureWrap.appendChild(s);
+      setTimeout(() => s.remove(), 4000);
+    }
+  }
+
+  // お祝いの週:中心から四方八方に一気にはじける、華やかで速いバースト
+  function spawnCelebrationBurst(){
+    const icons = ['✨', '⭐', '♡'];
+    for(let i=0;i<12;i++){
+      const s = document.createElement('span');
+      s.className = 'celebrate-particle';
+      s.textContent = icons[i % icons.length];
+      s.style.color = (i % 2 === 0) ? 'var(--good)' : 'var(--warm)';
+      s.style.fontSize = (14 + Math.random()*12) + 'px';
+      s.style.left = '50%';
+      s.style.bottom = '48%';
+
+      const angle = -Math.PI/2 + (Math.random() - 0.5) * Math.PI * 1.3; // 上方向を中心に広く飛び散る
+      const dist = 55 + Math.random()*75;
+      s.style.setProperty('--dx', (Math.cos(angle) * dist).toFixed(1) + 'px');
+      s.style.setProperty('--dy', (Math.sin(angle) * dist).toFixed(1) + 'px');
+      s.style.setProperty('--rot', (Math.random()*360 - 180) + 'deg');
+      s.style.animationDelay = (i * 0.03) + 's';
+
+      els.creatureWrap.appendChild(s);
+      setTimeout(() => s.remove(), 1600);
+    }
+  }
+
+  function scrollCreatureIntoView(){
+    els.creatureWrap.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+
+  function playSaveAnimation(){
+    scrollCreatureIntoView();
+    talkBoost = 1;
+    squishVelocity += 7.5;
+    spawnHearts();
+  }
+
+  function playCareAnimation(){
+    scrollCreatureIntoView();
+    talkBoost = 1.1;
+    squishVelocity += 6;
+    spawnCareGlow();
+    incrementCount(CARE_COUNT_KEY);
+    updateEmblems();
+  }
+
+  function playCelebrationAnimation(){
+    scrollCreatureIntoView();
+    talkBoost = 2.1;
+    squishVelocity += 13;
+    spawnHearts();
+    spawnCelebrationBurst();
+    incrementCount(CELEBRATION_COUNT_KEY);
+    updateEmblems();
+  }
+
+  function refreshAll(){
+    const entries = loadEntries();
+    const familiarity = loadFamiliarity();
+
+    updateSpeech(entries, familiarity);
+    updateWeekPanel(entries);
+    updateHistory(entries);
+    updateFamiliarityUI(familiarity);
+    updateEmblems();
+
+    els.simDateLabel.textContent = todayKey();
+
+    const key = todayKey();
+    if(entries[key]){
+      els.saveNote.textContent = '今日はすでに記録済みです(保存すると上書きされます)';
+    } else {
+      els.saveNote.textContent = '今日はまだ記録されていません';
+    }
+  }
+
+  els.saveBtn.addEventListener('click', () => {
+    const text = els.diaryInput.value.trim();
+    if(!text){
+      els.saveNote.textContent = '一言でいいので、今日のことを書いてください';
+      return;
+    }
+    if(selectedMoodIndex === null){
+      els.saveNote.textContent = '今日の気分を選んでください';
+      return;
+    }
+    const entries = loadEntries();
+    const key = todayKey();
+    const isNewDay = !entries[key];
+    const mood = MOODS[selectedMoodIndex];
+    entries[key] = { text, score: mood.score, label: mood.label };
+    saveEntries(entries);
+    lastSavedKey = key;
+
+    if(isNewDay){
+      saveFamiliarity(loadFamiliarity() + 1);
+    }
+
+    // 週が切り替わった直後の最初の記録だけ、前の週の内容に応じた特別な反応にする
+    let isCareMoment = false;
+    let isCelebrationMoment = false;
+    if(isNewDay){
+      const weeksAfter = getWeeks(entries);
+      if(weeksAfter.length > 1 && weeksAfter[weeksAfter.length-1].length === 1){
+        const prevWeek = weeksAfter[weeksAfter.length-2];
+        const label = judgeWeek(prevWeek).label;
+        isCareMoment = label === '大変な週';
+        isCelebrationMoment = label === '良い週';
+      }
+    }
+
+    els.diaryInput.value = '';
+    selectedMoodIndex = null;
+    [...els.moodRow.children].forEach(c=>{
+      c.classList.remove('selected');
+      c.style.background = '';
+      c.style.color = '';
+    });
+    refreshAll();
+    if(isCareMoment){
+      playCareAnimation();
+    } else if(isCelebrationMoment){
+      playCelebrationAnimation();
+    } else {
+      playSaveAnimation();
+    }
+  });
+
+  els.resetBtn.addEventListener('click', () => {
+    if(confirm('すべての記録・なじみ度・日付設定を消去します。よろしいですか?')){
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(FAMILIARITY_KEY);
+      localStorage.removeItem(OFFSET_KEY);
+      localStorage.removeItem(CELEBRATION_COUNT_KEY);
+      localStorage.removeItem(CARE_COUNT_KEY);
+      lastSavedKey = null;
+      refreshAll();
+    }
+  });
+
+  els.skip1Btn.addEventListener('click', () => {
+    saveOffset(loadOffset() + 1);
+    refreshAll();
+  });
+  els.skip7Btn.addEventListener('click', () => {
+    saveOffset(loadOffset() + 7);
+    refreshAll();
+  });
+  els.skipResetBtn.addEventListener('click', () => {
+    saveOffset(0);
+    refreshAll();
+  });
+  els.famSlider.addEventListener('input', (e) => {
+    const v = parseInt(e.target.value, 10);
+    saveFamiliarity(v);
+    const entries = loadEntries();
+    updateSpeech(entries, v);
+    updateFamiliarityUI(v);
+  });
+
+  // デバッグ用: 左矢印キー(←)を押すと表示上の日付が一ヶ月前に戻る
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+      const d = getSimulatedDate();
+      d.setMonth(d.getMonth() - 1);
+      const diffDays = Math.round((d.getTime() - Date.now()) / 86400000);
+      saveOffset(diffDays);
+      refreshAll();
+    }
+  });
+
+  // ---- 実演を楽にするための「1週間分まとめて用意」機能 ----
+  // 過去7日分(今日は含まない)のダミー日記を一括生成する。今日の分は空けておくので、
+  // 実演ではそのまま今日の記録をつけるだけで、先週分の反応(お祝い/ケア)がすぐ見られる。
+  const GOOD_DEMO_TEXTS = ['友達と楽しく話せた', '美味しいごはんを食べた', '好きな音楽を聴けた', '課題が早く終わった', '天気が良くて気持ちよかった', '面白い本を読めた', '久しぶりに家族と話せた'];
+  const BAD_DEMO_TEXTS = ['ちょっと疲れてしまった', '嫌なことがあった', '寝不足で辛かった', '課題に追われていた', '体調が優れなかった', '人間関係で悩んだ', '忙しくて余裕がなかった'];
+
+  function generateDemoWeek(kind){
+    const kindLabel = kind === 'good' ? '良い週' : '大変な週';
+    if(!confirm(`現在の記録・なじみ度をすべて消して、「${kindLabel}」のダミー日記(過去7日分)を作成します。よろしいですか?`)) return;
+
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(FAMILIARITY_KEY);
+    localStorage.removeItem(OFFSET_KEY);
+    localStorage.removeItem(CELEBRATION_COUNT_KEY);
+    localStorage.removeItem(CARE_COUNT_KEY);
+    lastSavedKey = null;
+
+    const textPool = kind === 'good' ? GOOD_DEMO_TEXTS : BAD_DEMO_TEXTS;
+    const scorePool = kind === 'good' ? [2,1,2,1,2,1,2] : [-2,-1,-2,-1,-2,-1,-2];
+    const entries = {};
+    for(let i=7;i>=1;i--){
+      const d = new Date(Date.now() - i*86400000); // 今日より前の日付。今日の分はあえて作らない
+      const key = dateKeyFor(d);
+      const idx = 7 - i;
+      const score = scorePool[idx % scorePool.length];
+      const moodLabel = MOODS.find(m => m.score === score).label;
+      entries[key] = { text: textPool[idx % textPool.length], score, label: moodLabel };
+    }
+    saveEntries(entries);
+    saveFamiliarity(7); // 実際に7日分使ったのと同じだけなじみ度を進めておく
+    saveOffset(0); // 今日は実際の日付のまま。ここから本番の記録をしてもらう
+    refreshAll();
+  }
+
+  els.demoGoodWeekBtn.addEventListener('click', () => generateDemoWeek('good'));
+  els.demoBadWeekBtn.addEventListener('click', () => generateDemoWeek('bad'));
+
+  els.creatureWrap.setAttribute('role', 'button');
+  els.creatureWrap.setAttribute('tabindex', '0');
+  els.creatureWrap.setAttribute('aria-label', 'ヒビをつつく');
+  els.creatureWrap.addEventListener('click', pokeCreature);
+  els.creatureWrap.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      pokeCreature();
+    }
+  });
+
+  renderMoodButtons();
+  refreshAll();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
